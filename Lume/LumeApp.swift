@@ -10,23 +10,22 @@ import SwiftData
 
 @main
 struct LumeApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    @StateObject private var favoritesManager = FavoritesManager()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabView {
+                ContentView()
+                    .tabItem {
+                        Label("Discover", systemImage: "safari")
+                    }
+                
+                FavoritesView()
+                    .tabItem {
+                        Label("Favorite", systemImage: "heart.fill")
+                    }
+            }
+            .environmentObject(favoritesManager)
         }
-        .modelContainer(sharedModelContainer)
     }
 }
