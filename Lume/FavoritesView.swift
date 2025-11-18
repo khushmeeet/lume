@@ -59,8 +59,9 @@ struct FavoriteRowView: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            if let url = favorite.thumbnailURLString {
-                AsyncImage(url: URL(string: url)!) { image in
+            if let urlString = favorite.thumbnailURLString,
+               let url = URL(string: urlString) {
+                AsyncImage(url: url) { image in
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)

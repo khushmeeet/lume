@@ -30,6 +30,12 @@ extension WikiArticle {
             title: title, extract: extract, thumbnailURLString: thumbnail?.source
         )
     }
+
+    var shareURL: URL {
+        // Wikipedia URL format: https://en.wikipedia.org/wiki/Article_Title
+        let encodedTitle = title.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? title
+        return URL(string: "https://en.wikipedia.org/wiki/\(encodedTitle)") ?? URL(string: "https://en.wikipedia.org")!
+    }
 }
 
 struct FavoriteArticle: Identifiable, Codable {

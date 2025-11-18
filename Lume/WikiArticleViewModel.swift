@@ -26,13 +26,14 @@ class WikiArticleViewModel: ObservableObject {
     
     func loadArticles() {
         isLoading = true
-        
+
         wikipediaService.fetchArticle()
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 self?.isLoading = false
                 if case .failure(let error) = completion {
                     self?.error = error.localizedDescription
+                    self?.showError("Failed to load articles. Please check your internet connection and try again.")
                 }
             }, receiveValue: { [weak self] articles in
                 self?.articles = articles
