@@ -9,90 +9,218 @@ import SwiftUI
 
 struct FavoritesView: View {
     @EnvironmentObject var favoritesManager: FavoritesManager
-    
+
     var body: some View {
-        NavigationView {
-            if favoritesManager.favorites.isEmpty {
-                emptyStateView
-            } else {
-                List {
-                    ForEach(favoritesManager.favorites) { favorite in
-                        FavoriteRowView(favorite: favorite)
+        ZStack {
+            // Background
+            Color.primaryBackground
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Custom Header
+                customHeader
+
+                if favoritesManager.favorites.isEmpty {
+                    emptyStateView
+                } else {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: PastelSpacing.medium) {
+                            ForEach(favoritesManager.favorites) { favorite in
+                                FavoriteRowView(favorite: favorite, onDelete: {
+                                    favoritesManager.removeFavorite(favorite)
+                                })
+                            }
+                        }
+                        .padding(.horizontal, PastelSpacing.large)
+                        .padding(.vertical, PastelSpacing.medium)
                     }
-                    .onDelete(perform: deleteFavorites)
                 }
-                .listStyle(.insetGrouped)
-                .navigationTitle("Favorite Articles")
             }
         }
     }
-    
-    private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "heart.slash")
-                .font(.system(size: 72))
-                .foregroundColor(.gray)
-            
-            Text("No favorite yet.")
-                .font(.title)
-                .fontWeight(.medium)
-            
-            Text("Articles you favorite will appear here")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+
+    private var customHeader: some View {
+        VStack(spacing: PastelSpacing.small) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Favorites")
+                        .font(PastelTypography.largeTitle)
+                        .foregroundColor(.primaryText)
+
+                    if !favoritesManager.favorites.isEmpty {
+                        Text("\(favoritesManager.favorites.count) articles saved")
+                            .font(PastelTypography.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                }
+
+                Spacer()
+
+                // Heart icon with gradient
+                ZStack {
+                    Circle()
+                        .fill(PastelGradient.accent)
+                        .frame(width: 50, height: 50)
+                        .shadow(
+                            color: PastelShadow.soft.color,
+                            radius: PastelShadow.soft.radius,
+                            x: PastelShadow.soft.x,
+                            y: PastelShadow.soft.y
+                        )
+
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(.primaryText)
+                }
+            }
+            .padding(.horizontal, PastelSpacing.large)
+            .padding(.top, PastelSpacing.large)
+            .padding(.bottom, PastelSpacing.medium)
+
+            PastelDivider()
         }
-        .navigationTitle("Favorites")
+        .background(Color.cardBackground)
     }
-    
-    private func deleteFavorites(at offsets: IndexSet) {
-        for index in offsets {
-            let favorite = favoritesManager.favorites[index]
-            favoritesManager.removeFavorite(favorite)
+
+    private var emptyStateView: some View {
+        VStack(spacing: PastelSpacing.large) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(PastelGradient.primary)
+                    .frame(width: 120, height: 120)
+
+                Image(systemName: "heart.slash.fill")
+                    .font(.system(size: 50, weight: .light))
+                    .foregroundColor(.pastelWhite)
+            }
+
+            VStack(spacing: PastelSpacing.small) {
+                Text("No favorites yet")
+                    .font(PastelTypography.title)
+                    .foregroundColor(.primaryText)
+
+                Text("Articles you favorite will appear here")
+                    .font(PastelTypography.body)
+                    .foregroundColor(.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, PastelSpacing.extraLarge)
+            }
+
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 struct FavoriteRowView: View {
     let favorite: FavoriteArticle
-    
+    let onDelete: () -> Void
+    @State private var offset: CGFloat = 0
+    @State private var isSwiping = false
+
     var body: some View {
-        HStack(spacing: 12) {
-            if let urlString = favorite.thumbnailURLString,
-               let url = URL(string: urlString) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Color.gray
+        ZStack {
+            // Delete background
+            HStack {
+                Spacer()
+                Button(action: onDelete) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 24, weight: .semibold))
+                        Text("Delete")
+                            .font(PastelTypography.captionMedium)
+                    }
+                    .foregroundColor(.pastelWhite)
                 }
-                .frame(width: 80, height: 80)
-                .cornerRadius(8)
-            } else {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [.blue.opacity(0.7), .purple.opacity(0.7)]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                .padding(.horizontal, 30)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: PastelCornerRadius.medium)
+                    .fill(Color.pastelRose)
+            )
+
+            // Main content
+            HStack(spacing: PastelSpacing.medium) {
+                // Thumbnail
+                if let urlString = favorite.thumbnailURLString,
+                   let url = URL(string: urlString) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(PastelGradient.secondary)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .font(.system(size: 24, weight: .light))
+                                    .foregroundColor(.pastelWhite.opacity(0.5))
+                            )
+                    }
+                    .frame(width: 90, height: 90)
+                    .clipShape(RoundedRectangle(cornerRadius: PastelCornerRadius.small))
+                } else {
+                    RoundedRectangle(cornerRadius: PastelCornerRadius.small)
+                        .fill(PastelGradient.secondary)
+                        .frame(width: 90, height: 90)
+                        .overlay(
+                            Image(systemName: "photo")
+                                .font(.system(size: 24, weight: .light))
+                                .foregroundColor(.pastelWhite.opacity(0.5))
                         )
+                }
+
+                // Text content
+                VStack(alignment: .leading, spacing: PastelSpacing.small) {
+                    Text(favorite.title)
+                        .font(PastelTypography.headline)
+                        .foregroundColor(.primaryText)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    Text(favorite.extract)
+                        .font(PastelTypography.caption)
+                        .foregroundColor(.secondaryText)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+            }
+            .padding(PastelSpacing.medium)
+            .background(
+                RoundedRectangle(cornerRadius: PastelCornerRadius.medium)
+                    .fill(Color.cardBackground)
+                    .shadow(
+                        color: PastelShadow.soft.color,
+                        radius: PastelShadow.soft.radius,
+                        x: PastelShadow.soft.x,
+                        y: PastelShadow.soft.y
                     )
-                    .frame(width: 80, height: 80)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(favorite.title)
-                    .font(.headline)
-                    .lineLimit(2)
-                
-                Text(favorite.extract)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-            }
+            )
+            .offset(x: offset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        if value.translation.width < 0 {
+                            offset = value.translation.width
+                        }
+                    }
+                    .onEnded { value in
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            if value.translation.width < -100 {
+                                offset = -100
+                                isSwiping = true
+                            } else {
+                                offset = 0
+                                isSwiping = false
+                            }
+                        }
+                    }
+            )
         }
-        .padding(.vertical, 4)
     }
 }

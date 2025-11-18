@@ -123,27 +123,57 @@ struct ContentView: View {
         HStack {
             if dragOffset < -50 {
                 Spacer()
-                VStack {
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 50))
-                        .foregroundColor(.red)
-                        .padding()
-                        .background(Circle().fill(Color.white.opacity(0.9)))
+                VStack(spacing: PastelSpacing.medium) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.favoriteColor)
+                            .frame(width: 80, height: 80)
+                            .shadow(
+                                color: PastelShadow.strong.color,
+                                radius: PastelShadow.strong.radius,
+                                x: PastelShadow.strong.x,
+                                y: PastelShadow.strong.y
+                            )
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 36, weight: .semibold))
+                            .foregroundColor(.primaryText)
+                    }
                     Text("Favorite")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                        .font(PastelTypography.headline)
+                        .foregroundColor(.pastelWhite)
+                        .padding(.horizontal, PastelSpacing.medium)
+                        .padding(.vertical, PastelSpacing.small)
+                        .background(
+                            Capsule()
+                                .fill(Color.pastelCharcoal.opacity(0.7))
+                        )
                 }
                 .padding(.trailing, 50)
             } else if dragOffset > 50 {
-                VStack {
-                    Image(systemName: "square.and.arrow.up.fill")
-                        .font(.system(size: 50))
-                        .foregroundColor(.blue)
-                        .padding()
-                        .background(Circle().fill(Color.white.opacity(0.9)))
+                VStack(spacing: PastelSpacing.medium) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.shareColor)
+                            .frame(width: 80, height: 80)
+                            .shadow(
+                                color: PastelShadow.strong.color,
+                                radius: PastelShadow.strong.radius,
+                                x: PastelShadow.strong.x,
+                                y: PastelShadow.strong.y
+                            )
+                        Image(systemName: "square.and.arrow.up.fill")
+                            .font(.system(size: 36, weight: .semibold))
+                            .foregroundColor(.primaryText)
+                    }
                     Text("Share")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                        .font(PastelTypography.headline)
+                        .foregroundColor(.pastelWhite)
+                        .padding(.horizontal, PastelSpacing.medium)
+                        .padding(.vertical, PastelSpacing.small)
+                        .background(
+                            Capsule()
+                                .fill(Color.pastelCharcoal.opacity(0.7))
+                        )
                 }
                 .padding(.leading, 50)
                 Spacer()
