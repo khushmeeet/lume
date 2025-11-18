@@ -14,71 +14,109 @@ struct WikiArticleCardView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .top) {
-                // Background gradient or color
-                Color.black
-                    .ignoresSafeArea()
+                // Animated gradient background
+                AnimatedGradientBackground()
 
-                // Header image at top (limited height)
-                if let thumbnail = wikiArticle.thumbnail,
-                   let url = URL(string: thumbnail.source) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width, height: min(geometry.size.height * 0.5, 400))
-                            .clipped()
-                            .overlay(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [.clear, .black.opacity(0.8), .black]),
-                                    startPoint: .top,
-                                    endPoint: .bottom
+                VStack(spacing: 0) {
+                    // Header image with custom styling
+                    if let thumbnail = wikiArticle.thumbnail,
+                       let url = URL(string: thumbnail.source) {
+                        AsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: geometry.size.width, height: min(geometry.size.height * 0.45, 380))
+                                .clipped()
+                                .overlay(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            .clear,
+                                            .primaryBackground.opacity(0.4),
+                                            .primaryBackground.opacity(0.9)
+                                        ]),
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
                                 )
-                            )
-                    } placeholder: {
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [.blue.opacity(0.7), .purple.opacity(0.7)]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+                                .cornerRadius(PastelCornerRadius.large, corners: [.bottomLeft, .bottomRight])
+                        } placeholder: {
+                            Rectangle()
+                                .fill(PastelGradient.primary)
+                                .frame(width: geometry.size.width, height: min(geometry.size.height * 0.45, 380))
+                                .overlay(
+                                    Image(systemName: "photo.artframe")
+                                        .font(.system(size: 60, weight: .light))
+                                        .foregroundColor(.pastelWhite.opacity(0.5))
                                 )
-                            )
-                            .frame(width: geometry.size.width, height: min(geometry.size.height * 0.5, 400))
-                    }
-                }
-
-                // Content overlay
-                VStack(alignment: .leading, spacing: 0) {
-                    Spacer()
-                        .frame(height: max(0, min(geometry.size.height * 0.35, 300)))
-
-                    Text(wikiArticle.title)
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
-
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Wikipedia")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.8))
-
-                            Text(wikiArticle.extract)
-                                .font(.body)
-                                .foregroundColor(.white)
-                                .lineSpacing(4)
+                                .cornerRadius(PastelCornerRadius.large, corners: [.bottomLeft, .bottomRight])
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
+                    } else {
+                        Rectangle()
+                            .fill(PastelGradient.primary)
+                            .frame(width: geometry.size.width, height: min(geometry.size.height * 0.45, 380))
+                            .overlay(
+                                Image(systemName: "photo.artframe")
+                                    .font(.system(size: 60, weight: .light))
+                                    .foregroundColor(.pastelWhite.opacity(0.5))
+                            )
+                            .cornerRadius(PastelCornerRadius.large, corners: [.bottomLeft, .bottomRight])
                     }
+
+                    // Content section
+                    VStack(alignment: .leading, spacing: PastelSpacing.medium) {
+                        // Wikipedia tag
+                        HStack {
+                            PastelTag(text: "Wikipedia", backgroundColor: .pastelLavender)
+                            Spacer()
+                        }
+                        .padding(.horizontal, PastelSpacing.large)
+                        .padding(.top, PastelSpacing.small)
+
+                        // Title
+                        Text(wikiArticle.title)
+                            .font(PastelTypography.largeTitle)
+                            .foregroundColor(.primaryText)
+                            .multilineTextAlignment(.leading)
+                            .padding(.horizontal, PastelSpacing.large)
+
+                        // Content scroll
+                        ScrollView(.vertical, showsIndicators: false) {
+                            Text(wikiArticle.extract)
+                                .font(PastelTypography.body)
+                                .foregroundColor(.secondaryText)
+                                .lineSpacing(6)
+                                .padding(.horizontal, PastelSpacing.large)
+                                .padding(.vertical, PastelSpacing.small)
+                        }
+                    }
+                    .frame(maxHeight: .infinity)
                     .background(
-                        Color.black.opacity(0.3)
+                        Color.primaryBackground.opacity(0.95)
                     )
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
             }
         }
+    }
+}
+
+// Helper for custom corner radius
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
     }
 }
