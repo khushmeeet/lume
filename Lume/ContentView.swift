@@ -23,32 +23,48 @@ struct ContentView: View {
                         viewModel.loadArticles()
                     }
             } else {
-                TabView(selection: $currentIndex) {
-                    ForEach(Array(viewModel.articles.enumerated()), id: \.element.id) { index, article in
-                        WikiArticleCardView(wikiArticle: article)
-                            .offset(x: currentIndex == index ? dragOffset : 0)
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { value in
-                                        if currentIndex == index {
-                                            // Only allow horizontal drag
-                                            if abs(value.translation.width) > abs(value.translation.height) {
-                                                dragOffset = value.translation.width
+                GeometryReader { geometry in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVStack(spacing: 0) {
+                            ForEach(Array(viewModel.articles.enumerated()), id: \.element.id) { index, article in
+                                WikiArticleCardView(wikiArticle: article)
+                                    .frame(width: geometry.size.width, height: geometry.size.height)
+                                    .offset(x: currentIndex == index ? dragOffset : 0)
+                                    .simultaneousGesture(
+                                        DragGesture()
+                                            .onChanged { value in
+                                                // Only allow horizontal drag if it's clearly horizontal
+                                                if abs(value.translation.width) > abs(value.translation.height) {
+                                                    if currentIndex == index {
+                                                        dragOffset = value.translation.width
+                                                    }
+                                                }
                                             }
-                                        }
+                                            .onEnded { value in
+                                                // Only trigger swipe if it's clearly horizontal
+                                                if abs(value.translation.width) > abs(value.translation.height) {
+                                                    if currentIndex == index {
+                                                        handleSwipe(for: article, translation: value.translation.width)
+                                                    }
+                                                }
+                                            }
+                                    )
+                                    .containerRelativeFrame(.vertical)
+                                    .scrollTransition { content, phase in
+                                        content
+                                            .opacity(phase.isIdentity ? 1 : 0.8)
+                                            .scaleEffect(phase.isIdentity ? 1 : 0.95)
                                     }
-                                    .onEnded { value in
-                                        if currentIndex == index {
-                                            handleSwipe(for: article, translation: value.translation.width)
-                                        }
+                                    .onAppear {
+                                        currentIndex = index
                                     }
-                            )
-                            .tag(index)
+                            }
+                        }
+                        .scrollTargetLayout()
                     }
+                    .scrollTargetBehavior(.paging)
+                    .ignoresSafeArea()
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .environment(\.layoutDirection, .rightToLeft)
-                .ignoresSafeArea()
 
                 // Swipe indicator overlay
                 if abs(dragOffset) > 50 {
