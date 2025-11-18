@@ -30,11 +30,12 @@ struct ContentView: View {
                                 WikiArticleCardView(wikiArticle: article)
                                     .frame(width: geometry.size.width, height: geometry.size.height)
                                     .offset(x: currentIndex == index ? dragOffset : 0)
-                                    .simultaneousGesture(
-                                        DragGesture()
+                                    .gesture(
+                                        DragGesture(minimumDistance: 20)
                                             .onChanged { value in
                                                 // Only allow horizontal drag if it's clearly horizontal
-                                                if abs(value.translation.width) > abs(value.translation.height) {
+                                                // Require significantly more horizontal movement than vertical
+                                                if abs(value.translation.width) > abs(value.translation.height) * 2.5 {
                                                     if currentIndex == index {
                                                         dragOffset = value.translation.width
                                                     }
@@ -42,9 +43,15 @@ struct ContentView: View {
                                             }
                                             .onEnded { value in
                                                 // Only trigger swipe if it's clearly horizontal
-                                                if abs(value.translation.width) > abs(value.translation.height) {
+                                                if abs(value.translation.width) > abs(value.translation.height) * 2.5
+                                                    && abs(value.translation.width) > 30 {
                                                     if currentIndex == index {
                                                         handleSwipe(for: article, translation: value.translation.width)
+                                                    }
+                                                } else {
+                                                    // Reset offset if swipe wasn't completed
+                                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                                        dragOffset = 0
                                                     }
                                                 }
                                             }
@@ -63,6 +70,7 @@ struct ContentView: View {
                         .scrollTargetLayout()
                     }
                     .scrollTargetBehavior(.paging)
+                    .scrollBounceBehavior(.basedOnSize)
                     .ignoresSafeArea()
                 }
 
