@@ -37,8 +37,8 @@ class FavoritesManager: ObservableObject {
     }
     
     private func loadFavorites() {
-        if let data = UserDefaults.standard.data(forKey: favoritesKey) {
-            let decoded = try! JSONDecoder().decode([FavoriteArticle].self, from: data)
+        if let data = UserDefaults.standard.data(forKey: favoritesKey),
+           let decoded = try? JSONDecoder().decode([FavoriteArticle].self, from: data) {
             favorites = decoded
         }
     }

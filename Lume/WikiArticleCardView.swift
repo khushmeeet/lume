@@ -61,8 +61,9 @@ struct WikiArticleCardView: View {
     
     private func backgroundView(for article: WikiArticle, in geometry: GeometryProxy) -> some View {
         Group {
-            if let thumbnail = article.thumbnail {
-                AsyncImage(url: URL(string: thumbnail.source)!) { image in
+            if let thumbnail = article.thumbnail,
+               let url = URL(string: thumbnail.source) {
+                AsyncImage(url: url) { image in
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
